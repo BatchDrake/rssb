@@ -1,0 +1,47 @@
+#
+# hello.rssb: Hello World in RSSB, originally
+# programmed by John Metcalf.
+#
+# This code assumes broken RSSB implementation,
+# in which skip is checked on result and not
+# on whether subtraction produced borrow or not.
+#
+
+	.option dumb
+loop:
+	rssb   ac    
+ptr:
+	rssb   hello        
+        rssb   out       
+        rssb   zero      
+        rssb   zero      
+        rssb   sum       
+        rssb   ip        
+        rssb   ac
+        rssb   one
+        rssb   ptr
+        rssb   ac       
+        rssb   loopoff
+        rssb   ip
+loopoff:
+	rssb   $-loop
+sum:
+	rssb   -1129 # Character sum, up to last char, excluded
+one:
+	rssb   1
+	rssb   0x0a
+        rssb   '!'      
+        rssb   'd'       
+        rssb   'l'       
+        rssb   'r'       
+        rssb   'o'       
+        rssb   'W'        
+        rssb   ' '       
+        rssb   ','        
+        rssb   'o'       
+        rssb   'l'       
+        rssb   'l'       
+        rssb   'e'       
+hello:
+	rssb   'H'
+	
