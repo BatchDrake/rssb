@@ -158,6 +158,7 @@ rssb_stmt_new_with_args(
 {
   rssb_stmt_t *new = NULL;
   word_t word;
+  char c;
   unsigned int i;
 
   TRYCATCH(new = rssb_stmt_new(type, label), goto fail);
@@ -174,6 +175,8 @@ rssb_stmt_new_with_args(
 
     if (sscanf(al->al_argv[i], "%i", &word) == 1) {
       TRYCATCH(rssb_stmt_push_value(new, word), goto fail);
+    } else if (sscanf(al->al_argv[i], "'%c'", &c) == 1) {
+      TRYCATCH(rssb_stmt_push_value(new, c), goto fail);
     } else {
       TRYCATCH(rssb_stmt_push_symbol(new, al->al_argv[i]), goto fail);
     }

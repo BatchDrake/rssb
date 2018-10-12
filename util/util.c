@@ -524,6 +524,9 @@ __split_command (const char *line, const char *separators, int fixed_sep_size)
       break;
     else
     {
+      if (line[i] == '\'')
+        split_flag = !split_flag;
+
       nptr = str_append_char (this_argument, line[i]);
 
       if (nptr == NULL)
