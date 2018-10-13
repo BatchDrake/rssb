@@ -7,29 +7,29 @@
 # on whether subtraction produced borrow or not.
 #
 
-	.option dumb
+        .option dumb
 loop:
-	rssb   ac    
+        rssb   $a
 ptr:
-	rssb   hello        
-        rssb   out       
-        rssb   zero      
-        rssb   zero      
+        rssb   hello        
+        rssb   $out       
+        rssb   $0      
+        rssb   $0      
         rssb   sum       
-        rssb   ip        
-        rssb   ac
+        rssb   $ip        
+        rssb   $a
         rssb   one
         rssb   ptr
-        rssb   ac       
+        rssb   $a       
         rssb   loopoff
-        rssb   ip
+        rssb   $ip
 loopoff:
-	rssb   $-loop
+        rssb   %-loop
 sum:
-	rssb   -1129 # Character sum, up to last char, excluded
+        rssb   -1129 # Character sum, up to last char, excluded
 one:
-	rssb   1
-	rssb   0x0a
+        rssb   1
+        rssb   0x0a
         rssb   '!'      
         rssb   'd'       
         rssb   'l'       
@@ -43,5 +43,5 @@ one:
         rssb   'l'       
         rssb   'e'       
 hello:
-	rssb   'H'
-	
+        rssb   'H'
+        

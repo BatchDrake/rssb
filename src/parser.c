@@ -600,7 +600,7 @@ rssb_scope_resolve_sym(
       return FALSE;
     *word = -parsed;
     return TRUE;
-  } else if (*name == '$') {
+  } else if (*name == '%') {
     if (!rssb_scope_resolve_sym(scope, stmt, name + 1, &parsed))
       return FALSE;
 
@@ -608,19 +608,19 @@ rssb_scope_resolve_sym(
     return TRUE;
   }
 
-  if (strcasecmp(name, "A") == 0 || strcasecmp(name, "AC") == 0) {
+  if (strcasecmp(name, "$A") == 0 || strcasecmp(name, "$AC") == 0) {
     *word = RSSB_ADDR_A;
     return TRUE;
-  } else if (strcasecmp(name, "IP") == 0 || strcasecmp(name, "PC") == 0) {
+  } else if (strcasecmp(name, "$IP") == 0 || strcasecmp(name, "$PC") == 0) {
     *word = RSSB_ADDR_IP;
     return TRUE;
-  } else if (strcasecmp(name, "ZERO") == 0 || strcasecmp(name, "$0") == 0) {
+  } else if (strcasecmp(name, "$ZERO") == 0 || strcasecmp(name, "$0") == 0) {
     *word = RSSB_ADDR_ZERO;
     return TRUE;
-  } else if (strcasecmp(name, "IN") == 0 || strcasecmp(name, "INPUT") == 0) {
+  } else if (strcasecmp(name, "$IN") == 0 || strcasecmp(name, "$INPUT") == 0) {
     *word = RSSB_ADDR_IN;
     return TRUE;
-  } else if (strcasecmp(name, "OUT") == 0 || strcasecmp(name, "OUTPUT") == 0) {
+  } else if (strcasecmp(name, "$OUT") == 0 || strcasecmp(name, "$OUTPUT") == 0) {
     *word = RSSB_ADDR_OUT;
     return TRUE;
   }
