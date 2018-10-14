@@ -1,0 +1,111 @@
+.macro ZERO
+    rssb $a
+.end
+
+.macro GET ADDR
+    ZERO
+    rssb ADDR
+.end
+
+.macro CLEAR ADDR
+    rssb ADDR
+    rssb ADDR # Conditionally executed
+    rssb ADDR
+.end
+  
+.macro STORE ADDR
+  rssb TMP      # Save $a
+  rssb $a       # Only executed if $a was 0
+  CLEAR ADDR    # *ADDR = $a = 0x0
+  rssb TMP      # $a = -$old_a
+  rssb ADDR     # *ADDR = $old_a
+  CLEAR TMP     # Leave TMP cleared. $a IS NOW 0
+.end
+
+.macro MOVE DEST ORIGIN
+  GET ORIGIN
+  STORE DEST
+.end
+
+.macro PUTCHAR ADDR
+  ZERO             # $a = 0
+  rssb ADDR        # $a = *addr
+  rssb $0          # $a = -*addr
+  rssb $0          # Skipped if *addr != 0. Otherwise, $a = 0
+  rssb $out        # 0 - $a = 0 - (-*addr) = *addr
+  rssb $a          # Skipped if *addr != 0
+.end
+
+.macro EXIT
+  ZERO             # Clean accumulator
+  rssb $ip
+  rssb $ip
+.end
+
+.macro ADD RES OP1 OP2
+  MOVE RES, OP1   # Move OP1 to RES. $a = 0
+  rssb OP2        # Put OP2 in $a. OP2 untouched
+  rssb $0         # Invert OP2
+  rssb $0         ############# Skipped if $a != 0 ###############
+  rssb RES        # RES: OP1 - (-OP2) = OP1 + OP2
+  rssb $a         ############ Potentially skipped ###############
+.end
+
+.macro SUB RES OP1 OP2
+  MOVE RES, OP1   # Move OP1 to RES. $a = 0
+  rssb OP2        # Put OP2 in $a. OP2 untouched
+  rssb RES        # RES: OP1 - OP2
+  rssb $a         ############# Potentially skipped #############
+.end
+
+.macro JUMP LABEL
+  GET LOOPOFF
+  rssb $ip
+LOOPOFF:
+  rssb %-LABEL   # Distance from last LOOP label
+.end
+
+################################# ENTRY POINT #################################
+  CLEAR TMP
+  
+  ADD SUM, OP1, OP2
+  ADD SUM, SUM, CZERO
+  PUTCHAR SUM
+  PUTCHAR EOL # \n
+
+  SUB SUM, OP2, OP1
+  ADD SUM, SUM, CZERO
+  PUTCHAR SUM
+  PUTCHAR EOL # \n
+
+  EXIT
+  
+################################# DATA SEGMENT ################################
+ONE: 
+  rssb 1
+
+TWO: 
+  rssb 2
+
+EOL:
+  rssb 0x0a      # ASCII 10: New line
+  
+CZERO:
+  rssb '0'
+  
+SUM:
+  rssb 0
+
+OP1:
+  rssb 3
+  
+OP2:
+  rssb 4
+
+############################## TEMPORARY STORAGE ##############################
+TMP:
+  rssb 0
+
+COPY:
+  rssb 0
+
