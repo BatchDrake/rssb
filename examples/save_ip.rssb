@@ -11,6 +11,7 @@
     rssb ADDR
     rssb ADDR # Conditionally executed
     rssb ADDR
+    rssb ADDR
 .end
   
 .macro STORE ADDR
@@ -30,8 +31,7 @@
 .macro PUTCHAR ADDR
   ZERO             # $a = 0
   rssb ADDR        # $a = *addr
-  rssb $0          # $a = -*addr
-  rssb $0          # Skipped if *addr != 0. Otherwise, $a = 0
+  INVERT
   rssb $out        # 0 - $a = 0 - (-*addr) = *addr
   rssb $a          # Skipped if *addr != 0
 .end
@@ -42,11 +42,15 @@
   rssb $ip
 .end
 
+.macro INVERT
+  rssb $0
+  rssb $a
+.end
+
 .macro ADD RES OP1 OP2
   MOVE RES, OP1   # Move OP1 to RES. $a = 0
   rssb OP2        # Put OP2 in $a. OP2 untouched
-  rssb $0         # Invert OP2
-  rssb $0         ############# Skipped if $a != 0 ###############
+  INVERT
   rssb RES        # RES: OP1 - (-OP2) = OP1 + OP2
   rssb $a         ############ Potentially skipped ###############
 .end
@@ -65,27 +69,61 @@ LOOPOFF:
   rssb %-LABEL   # Distance from last LOOP label
 .end
 
+.macro CMP A B
+  MOVE COPY, A 
+  GET B
+  rssb COPY             # copy = $a = A - B
+  rssb $a               # Skipped if B > A
+  STORE COPY
+  ####### At this point: $a = B > A ? (negative diff) : 0 #######
+  
+  SUB COPY2, ONE, COPY  # Copy2: COPY + 1
+  
+  GET COPY2             # Restore conditional expression
+  rssb $0               # Attempt to invert
+  rssb ONE              # It was zero? $a = 1. Leaves it untouched, skips next                           
+  rssb COPY             # It was nonzero?
+.end
+
+.macro JGE A B LABEL
+  CLEAR SKIP
+  CMP A, B
+  STORE COPY
+  
+  # Now we use the comparison result to compute the number of instructions
+  # to skip
+  
+  ADD SKIP, SKIP, COPY
+  ADD SKIP, SKIP, COPY
+  ADD SKIP, SKIP, COPY
+  ADD SKIP, SKIP, COPY
+  
+  GET SKIP
+  INVERT               # Make it negative
+  
+  rssb $ip             # If $a = 0: no skip. Otherwise: skip 4 instructions.
+  
+  JUMP LABEL           # JUMP is 4 instructions long 
+  
+  ZERO
+.end
+
 ################################# ENTRY POINT #################################
   CLEAR TMP
   
-  ADD SUM, OP1, OP2
-  ADD SUM, SUM, CZERO
-  PUTCHAR SUM
-  PUTCHAR EOL # \n
-
-  SUB SUM, OP2, OP1
-  ADD SUM, SUM, CZERO
-  PUTCHAR SUM
-  PUTCHAR EOL # \n
-
+  JGE OP1, OP2, END
+  
+  PUTCHAR CZERO
+  
+END:
+  ZERO
+  PUTCHAR EOL
+  
   EXIT
   
-################################# DATA SEGMENT ################################
+################################### .rodata ###################################
 ONE: 
   rssb 1
-
-TWO: 
-  rssb 2
 
 EOL:
   rssb 0x0a      # ASCII 10: New line
@@ -93,6 +131,7 @@ EOL:
 CZERO:
   rssb '0'
   
+#################################### .data ####################################
 SUM:
   rssb 0
 
@@ -100,7 +139,7 @@ OP1:
   rssb 3
   
 OP2:
-  rssb 4
+  rssb 51
 
 ############################## TEMPORARY STORAGE ##############################
 TMP:
@@ -109,3 +148,8 @@ TMP:
 COPY:
   rssb 0
 
+COPY2:
+  rssb 0
+  
+SKIP:
+  rssb 0
