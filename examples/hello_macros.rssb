@@ -1,3 +1,59 @@
+################################# ENTRY POINT #################################
+
+LOOP:
+  GET_PTR PTR         # Read character pointed by PTR
+  STORE CHAR          # Save it in variable CHAR
+
+  JGE $0, CHAR, END   # Is CHAR lesser or equal than zero? If yes, end.
+  
+  PUTCHAR CHAR        # Otherwise, put character
+
+  ADD PTR, PTR, ONE   # Increase string pointer
+  JUMP LOOP           # Repeat!
+  
+END:
+  ZERO                # We reach this place from a forward jump
+  EXIT                # Exit VM
+
+################################ PROGRAM DATA #################################
+PTR:
+  rssb HELLO # Address of first char of the string
+
+ONE2:
+  rssb 1
+CHAR:
+  rssb 0
+  
+HELLO:
+  rssb 'H'
+  rssb 'e'
+  rssb 'l'
+  rssb 'l'
+  rssb 'o'
+  rssb ' '
+  rssb 'w'
+  rssb 'o'
+  rssb 'r'
+  rssb 'l'
+  rssb 'd'
+  rssb ','
+  rssb ' '
+  rssb 'w'
+  rssb 'i'
+  rssb 't'
+  rssb 'h'
+  rssb ' '
+  rssb 'm'
+  rssb 'a'
+  rssb 'c'
+  rssb 'r'
+  rssb 'o'
+  rssb 's'
+  rssb '!'
+  rssb 0x0a
+  rssb 0
+  
+############################## MACRO DEFINITIONS ##############################
 .macro ZERO
     rssb $a
 .end
@@ -8,8 +64,9 @@
 .end
 
 .macro CLEAR ADDR
+    ZERO
     rssb ADDR
-    rssb ADDR # Conditionally executed
+    rssb ADDR
     rssb ADDR
 .end
   
@@ -36,7 +93,7 @@
 .end
 
 .macro EXIT
-  ZERO             # Clean accumulator
+  ZERO             # Clear accumulator
   rssb $ip
   rssb $ip
 .end
@@ -107,38 +164,37 @@ LOOPOFF:
   ZERO
 .end
 
-################################# ENTRY POINT #################################
-  CLEAR TMP
-  
-  JGE OP1, OP2, END
-  
-  PUTCHAR CZERO
-  
-END:
-  ZERO
-  PUTCHAR EOL
-  
-  EXIT
-  
-################################### .rodata ###################################
-ONE: 
-  rssb 1
+.macro GET_PTR ADDR
+  MOVE DO_GET, ADDR    # Alter instruction to retrieve given value
+  ZERO                 # Clear accumulator
+DO_GET:
+  rssb 0               # Modified by pervious MOVE
+.end
 
-EOL:
-  rssb 0x0a      # ASCII 10: New line
-  
-CZERO:
-  rssb '0'
-  
-#################################### .data ####################################
-SUM:
-  rssb 0
+.macro STORE_PTR ADDR
+  rssb TMP      # Save $a
+  rssb $a       # Only executed if $a was 0
 
-OP1:
-  rssb 3
-  
-OP2:
-  rssb 51
+  MOVE DO_CLEAR, ADDR # Alter clear   instruction
+  MOVE DO_STORE, ADDR # Alter storage instruction
+
+DO_CLEAR:
+  CLEAR 0       # *(*ADDR) = $a = 0x0
+  rssb TMP      # $a = -$old_a
+
+DO_STORE:
+  rssb 0        # *(*ADDR) = $old_a
+  CLEAR TMP     # Leave TMP cleared. $a IS NOW 0
+.end
+
+.macro IMM VALUE
+  GET OFFSET # In $a: address of VALUE (nonzero in general)
+  rssb $0    # Invert $a. As $a is nonzero, the next instruction is skipped
+OFFSET:
+  rssb VALUE # This memory position contains the address of VALUE
+  rssb $0    # Invert $a again to its original sign.
+  ZERO       # This instruction is skipped if VALUE was nonzero
+.end
 
 ############################## TEMPORARY STORAGE ##############################
 TMP:
@@ -152,3 +208,9 @@ COPY2:
   
 SKIP:
   rssb 0
+  
+################################### .rodata ###################################
+ONE: 
+  rssb 1
+
+  

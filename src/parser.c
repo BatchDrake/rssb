@@ -476,7 +476,10 @@ rssb_scope_parse_from_fp(
             goto done);
       } else {
         TRYCATCH(
-            stmt = rssb_stmt_new_with_args(RSSB_STMT_TYPE_MACRO, NULL, al),
+            stmt = rssb_stmt_new_with_args(
+                RSSB_STMT_TYPE_MACRO,
+                al->al_argv[0],
+                al),
             goto done);
       }
 
@@ -490,6 +493,7 @@ rssb_scope_parse_from_fp(
     }
 
     free(line);
+    line = NULL;
   }
 
   ok = TRUE;
@@ -576,9 +580,9 @@ rssb_scope_find_macro(const rssb_scope_t *scope, const char *name)
     return macro;
 
   if (scope->parent != NULL)
-    return rssb_scope_find_macro(scope, name);
+    return rssb_scope_find_macro(scope->parent, name);
 
-  return FALSE;
+  return NULL;
 }
 
 PRIVATE BOOL
@@ -728,7 +732,7 @@ rssb_scope_compile(rssb_scope_t *scope, rssb_vm_t *vm)
         case RSSB_STMT_TYPE_MACRO:
           if ((macro = rssb_scope_find_macro(
               scope,
-              scope->stmt_list[i]->name)) != NULL) {
+              scope->stmt_list[i]->name)) == NULL) {
             fprintf(
                 stderr,
                 "error: macro `%s' not defined at %s+%d\n",

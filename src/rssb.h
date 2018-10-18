@@ -58,6 +58,7 @@ enum rssb_addr {
 typedef struct rssb_vm {
   BOOL dumb_mode;
   word_t *mem;
+  word_t footprint;
   unsigned int mem_neg_mask;
   unsigned int mem_mask;
   unsigned int mem_size;
@@ -71,6 +72,7 @@ typedef struct rssb_vm {
 rssb_vm_t *rssb_vm_new(unsigned int size);
 BOOL   rssb_vm_put_word(rssb_vm_t *vm, word_t word);
 word_t rssb_vm_get_ptr(const rssb_vm_t *vm);
+void   rssb_vm_disas(const rssb_vm_t *vm);
 void   rssb_vm_set_ptr(rssb_vm_t *vm, word_t ptr);
 void   rssb_vm_set_dumb(rssb_vm_t *vm, BOOL dumb);
 BOOL   rssb_vm_run(rssb_vm_t *vm);
